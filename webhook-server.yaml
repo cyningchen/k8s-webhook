@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: webhook-test
+    webhook: "true"
+  name: webhook-deploy
+  namespace: webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-test
+      webhook: "true"
+  template:
+    metadata:
+      labels:
+        app: webhook-test
+        webhook: "true"
+    spec:
+      containers:
+      - args:
+        - --tls-cert-file=/webhook.local.config/certificates/cert.pem
+        - --tls-private-key-file=/webhook.local.config/certificates/key.pem
+        - --alsologtostderr
+        - -v=4
+        - 2>&1
+        image: cyningchen/webhook:2.0
+        imagePullPolicy: IfNotPresent
+        name: webhook-test
+        volumeMounts:
+        - mountPath: /webhook.local.config/certificates
+          name: webhook-certs
+          readOnly: true
+      volumes:
+      - name: webhook-certs
+        secret:
+          defaultMode: 420
+          secretName: webhook-test-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-svc
+  namespace: webhook
+  labels:
+    test: webhook
+spec:
+  ports:
+  - port: 443
+    targetPort: 443
+  selector:
+    webhook: "true"
+  sessionAffinity: None
+  type: ClusterIP
