@@ -83,14 +83,19 @@ func serveMutatePods(w http.ResponseWriter, r *http.Request) {
 	serve(w, r, mutatePods)
 }
 
+func serveValidateLabels(w http.ResponseWriter, r *http.Request)  {
+	serve(w, r, validateLabels)
+}
+
 func main() {
 	klog.InitFlags(nil)
 	var config Config
 	config.addFlags()
 	flag.Parse()
 
-	http.HandleFunc("/pods", servePods)
-	http.HandleFunc("/mutating-pods", serveMutatePods)
+	//http.HandleFunc("/pods", servePods)
+	//http.HandleFunc("/mutating-pods", serveMutatePods)
+	http.HandleFunc("/validate", serveValidateLabels)
 	server := &http.Server{
 		Addr:      ":443",
 		TLSConfig: configTLS(config),
